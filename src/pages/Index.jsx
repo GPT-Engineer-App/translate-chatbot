@@ -1,18 +1,57 @@
-// Update this page (the content is just a fallback if you fail and example)
-// Use chakra-ui
-import { Container, Text, VStack } from "@chakra-ui/react";
-
-// Example of using react-icons
-// import { FaRocket } from "react-icons/fa";
-// <IconButton aria-label="Add" icon={<FaRocket />} size="lg" />; // IconButton would also have to be imported from chakra
+import React, { useState } from "react";
+import { Container, VStack, Text, Box } from "@chakra-ui/react";
+import ChatBot from "react-simple-chatbot";
+import axios from "axios";
 
 const Index = () => {
+  const [language, setLanguage] = useState("en");
+
+  const handleEnd = async ({ steps, values }) => {
+    const newMessage = values[values.length - 1];
+    try {
+      const response = await axios.post("https://translation.googleapis.com/language/translate/v2", null, {
+        params: {
+          q: newMessage,
+          target: language,
+          key: "YOUR_GOOGLE_TRANSLATE_API_KEY",
+        },
+      });
+
+      const translatedText = response.data.data.translations[0].translatedText;
+      alert(`Translated Text: ${translatedText}`);
+    } catch (error) {
+      console.error("Error translating message:", error);
+      alert("Sorry, I couldn't translate that message.");
+    }
+  };
+
+  const steps = [
+    {
+      id: "1",
+      message: "Type a message and get it translated!",
+      trigger: "user-message",
+    },
+    {
+      id: "user-message",
+      user: true,
+      trigger: "end",
+    },
+    {
+      id: "end",
+      message: "Translating...",
+      end: true,
+    },
+  ];
+
   return (
     <Container centerContent maxW="container.md" height="100vh" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
       <VStack spacing={4}>
-        <Text fontSize="2xl">Your Blank Canvas</Text>
-        <Text>Chat with the agent to start making edits.</Text>
+        <Text fontSize="2xl">Language Translation Chatbot</Text>
+        <Text>Type a message and get it translated!</Text>
       </VStack>
+      <Box width="100%">
+        <ChatBot steps={steps} handleEnd={handleEnd} />
+      </Box>
     </Container>
   );
 };
